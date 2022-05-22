@@ -1,4 +1,4 @@
 /.env
-/venv/
+/env/
 /client_secret.json
 /token.json

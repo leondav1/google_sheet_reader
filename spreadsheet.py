@@ -17,8 +17,8 @@ load_dotenv()
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 # The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
-SAMPLE_RANGE_NAME = os.getenv('RANGE_NAME')
+SAMPLE_SPREADSHEET_ID = '1wCsACuZHsJMss9I7E6sPJKbwO_lEJJO1K-Sj_zj5bn4'
+SAMPLE_RANGE_NAME = 'Class Data!A2:E'
 
 
 def main(range_name):
