@@ -49,7 +49,7 @@ def main(range_name):
         result = service.spreadsheets().values().get(
             spreadsheetId=SAMPLE_SPREADSHEET_ID, range=range_name).execute()
         rows = result.get('values', [])
-        print(f"{len(rows)} rows retrieved")
+        # print(f"{len(rows)} rows retrieved")
         return result
     except HttpError as error:
         print(f"An error occurred: {error}")

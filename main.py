@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import os
 from datetime import datetime
 
 import requests
@@ -30,11 +30,12 @@ class OrdersList:
         now = datetime.now().strftime('%Y-%m-%d')
         if now != self.current_date or self.current_date is None:
             self.current_date = now
-            return self.exchange()
-        return self.usd_daily
+            return False
+        return True
 
     @staticmethod
     def exchange():
+        """Функция получения курса доллара"""
         response = requests.get(URL).json()
         return response['Valute']['USD']['Value']
 
@@ -58,7 +59,7 @@ class OrdersList:
             if count_update:
                 self.count_query.count = 0
             s.commit()
-        except:
+        except Exception:
             s.rollback()
 
     def table_filling(self, model, data, count_update=False):
@@ -77,6 +78,37 @@ class OrdersList:
             self.count_query.count = len(data)
             s.commit()
         return True
+
+    @staticmethod
+    def send_telegram(messages: list):
+        token = os.getenv('TOKEN')
+        url = "https://api.telegram.org/bot"
+        chat_id = os.getenv('CHAT_ID')
+        url += token
+        method = url + "/sendMessage"
+
+        response = requests.post(method, data={
+            "chat_id": chat_id,
+            "text": messages
+        })
+
+        if response.status_code != 200:
+            raise Exception("post_text error")
+
+    def check_delivery_time(self, data):
+        """Функция проверки просроченных задач с отправкой в телеграм"""
+        now = datetime.now().strftime('%d.%m.%Y')
+        message = f'Нарушены сроки поставки на {now}:\n\n'
+        data_sort = sorted(data, key=lambda x: datetime.strptime(x[2], "%d.%m.%Y").strftime("%Y-%m-%d"))
+
+        for row in data_sort:
+            if row[2] < now:
+                message += f'Заказ {row[0]}, срок поставки {row[2]}.\n'
+            elif row[2] == now:
+                message += f'Заказ {row[0]}, срок поставки истекает сегодня.\n'
+            else:
+                break
+        self.send_telegram(messages=[message])
 
     def check_data(self):
         # Очистить данные, если excel таблица пустая
@@ -122,7 +154,7 @@ class OrdersList:
                 res = s.query(TemporarySupply).filter(TemporarySupply.order == order).one()
                 rub_price = round(float(res.usd_price) * self.usd_daily, 2)
                 # Обновить запись
-                print('Обновление записи')
+                # print('Обновление записи')
                 update = s.query(Supply).filter(Supply.order == order).update(
                     {"usd_price": float(res.usd_price),
                      "delivery": res.delivery,
@@ -131,14 +163,14 @@ class OrdersList:
                 )
                 if not update:
                     # Создать запись
-                    print('Создание записи')
+                    # print('Создание записи')
                     add_order = Supply(order=order, usd_price=float(res.usd_price), delivery=res.delivery, rub_price=rub_price)
                     s.add(add_order)
                     self.count_query.count += 1
                 s.commit()
             except NoResultFound:
                 # Удалить запись
-                print('Удаление записи')
+                # print('Удаление записи')
                 del_order = s.query(Supply).filter(Supply.order == order).one()
                 s.delete(del_order)
                 self.count_query.count -= 1
@@ -146,10 +178,12 @@ class OrdersList:
         return 'Success'
 
     def run(self):
-        print('start')
+        # print('start')
         self.data = main(RANGE)
-        self.usd_daily = self.check_cur_date()
-        print(self.check_data())
+        if not self.check_cur_date():
+            self.usd_daily = self.exchange()
+            self.check_delivery_time(self.data['values'])
+        self.check_data()
 
 
 if __name__ == '__main__':
