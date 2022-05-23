@@ -44,13 +44,4 @@ class Counter(Base):
     count = Column(Integer, nullable=False, default=0)
 
 
-class Exchange(Base):
-    __tablename__ = 'Exchanges'
-
-    id = Column(Integer, primary_key=True)
-    valute = Column(String, nullable=False)
-    value = Column(Float, nullable=False)
-    date = Column(Date)
-
-
 Base.metadata.create_all(engine)
