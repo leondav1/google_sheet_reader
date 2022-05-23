@@ -21,10 +21,10 @@ s = session()
 
 class OrdersList:
     def __init__(self):
-        self.data = None
-        self.usd_daily = None
-        self.current_date = None
-        self.count_query = self.counter()
+        self.data = None  # данные из таблицы
+        self.usd_daily = None  # курс доллара
+        self.current_date = None  # текущая дата
+        self.count_query = self.counter()  # счетчик количества строк в гугл таблице
 
     def check_cur_date(self):
         now = datetime.now().strftime('%Y-%m-%d')
@@ -154,7 +154,7 @@ class OrdersList:
                 res = s.query(TemporarySupply).filter(TemporarySupply.order == order).one()
                 rub_price = round(float(res.usd_price) * self.usd_daily, 2)
                 # Обновить запись
-                # print('Обновление записи')
+                print('Обновление записи')
                 update = s.query(Supply).filter(Supply.order == order).update(
                     {"usd_price": float(res.usd_price),
                      "delivery": res.delivery,
@@ -163,14 +163,14 @@ class OrdersList:
                 )
                 if not update:
                     # Создать запись
-                    # print('Создание записи')
+                    print('Создание записи')
                     add_order = Supply(order=order, usd_price=float(res.usd_price), delivery=res.delivery, rub_price=rub_price)
                     s.add(add_order)
                     self.count_query.count += 1
                 s.commit()
             except NoResultFound:
                 # Удалить запись
-                # print('Удаление записи')
+                print('Удаление записи')
                 del_order = s.query(Supply).filter(Supply.order == order).one()
                 s.delete(del_order)
                 self.count_query.count -= 1
@@ -178,12 +178,12 @@ class OrdersList:
         return 'Success'
 
     def run(self):
-        # print('start')
+        print('start')
         self.data = main(RANGE)
         if not self.check_cur_date():
             self.usd_daily = self.exchange()
             self.check_delivery_time(self.data['values'])
-        self.check_data()
+        print(self.check_data())
 
 
 if __name__ == '__main__':

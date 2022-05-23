@@ -27,6 +27,7 @@ class Supply(Base):
     rub_price = Column(Float)
 
 
+# Таблица временных (новых) данных
 class TemporarySupply(Base):
     __tablename__ = 'TemporarySupplies'
 
