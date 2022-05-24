@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Sequence
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Float, Date, String
 
@@ -20,7 +20,7 @@ def my_default():
 class Supply(Base):
     __tablename__ = 'Supplies'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, Sequence('Supply_id_seq', start=1, increment=1), primary_key=True)
     order = Column(Integer, nullable=False)
     usd_price = Column(Float)
     delivery = Column(Date)
@@ -31,7 +31,7 @@ class Supply(Base):
 class TemporarySupply(Base):
     __tablename__ = 'TemporarySupplies'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, Sequence('TemporarySupply_id_seq', start=1, increment=1), primary_key=True)
     order = Column(Integer, nullable=False)
     usd_price = Column(Float)
     delivery = Column(Date)
