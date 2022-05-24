@@ -58,7 +58,6 @@ class OrdersList:
             s.query(model).delete(synchronize_session='fetch')
             if count_update:
                 self.count_query.count = 0
-            s.commit()
             s.execute(f'ALTER SEQUENCE "{model.__name__}_id_seq" RESTART WITH 1')
             s.commit()
         except Exception:
